@@ -42,3 +42,14 @@ jobs:
       with:
         name: mavlink-camera-manager-${{ matrix.SUFFIX }}
         path: mavlink-camera-manager-${{ matrix.SUFFIX }}
+
+    - uses: svenstaro/upload-release-action@v2
+      name: Upload binaries to release
+      if: ${{ github.event_name == 'push' }}
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: mavlink2rest-${{ matrix.TARGET }}${{ matrix.EXTENSION }}
+        asset_name: mavlink2rest-${{ matrix.TARGET }}${{ matrix.EXTENSION }}
+        tag: ${{ github.ref }}
+        prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        overwrite: true
