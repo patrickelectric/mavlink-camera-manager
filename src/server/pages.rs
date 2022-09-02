@@ -25,6 +25,7 @@ use std::io::prelude::*;
 pub struct ApiVideoSource {
     name: String,
     source: String,
+    source_type: VideoSourceType,
     formats: Vec<Format>,
     controls: Vec<Control>,
 }
@@ -110,22 +111,25 @@ pub async fn v4l() -> Json<Vec<ApiVideoSource>> {
     let cameras = video_source::cameras_available();
     let cameras: Vec<ApiVideoSource> = cameras
         .iter()
-        .map(|cam| match cam {
+        .map(|type_cam| match type_cam {
             VideoSourceType::Local(cam) => ApiVideoSource {
                 name: cam.name().clone(),
                 source: cam.source_string().to_string(),
+                source_type: type_cam.clone(),
                 formats: cam.formats(),
                 controls: cam.controls(),
             },
             VideoSourceType::Gst(gst) => ApiVideoSource {
                 name: gst.name().clone(),
                 source: gst.source_string().to_string(),
+                source_type: type_cam.clone(),
                 formats: gst.formats(),
                 controls: gst.controls(),
             },
             VideoSourceType::Redirect(redirect) => ApiVideoSource {
                 name: redirect.name().clone(),
                 source: redirect.source_string().to_string(),
+                source_type: type_cam.clone(),
                 formats: redirect.formats(),
                 controls: redirect.controls(),
             },
