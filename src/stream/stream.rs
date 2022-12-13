@@ -1,6 +1,6 @@
 use super::manager::Manager;
 use super::pipeline::pipeline::Pipeline;
-use super::sink::sink::create_udp_sink;
+use super::sink::sink::{create_rtsp_sink, create_udp_sink};
 use super::types::*;
 use super::webrtc::signalling_protocol::PeerId;
 use super::webrtc::signalling_server::StreamManagementInterface;
@@ -53,6 +53,12 @@ impl Stream {
                 let result = match endpoint {
                     "udp" => {
                         create_udp_sink(Manager::generate_uuid(), video_and_stream_information)
+                    }
+                    "rtsp" => {
+                        create_rtsp_sink(Manager::generate_uuid(), video_and_stream_information)
+                    }
+                    "webrtc" => {
+                        create_rtsp_sink(Manager::generate_uuid(), video_and_stream_information)
                     }
                     unsupported => Err(anyhow!("Unsupported Endpoint scheme: {unsupported}")),
                 };
@@ -125,6 +131,16 @@ fn check_scheme(video_and_stream_information: &VideoAndStreamInformation) -> Res
         "udp265" => {
             if VideoEncodeType::H265 != encode {
                 return Err(anyhow!("Endpoint with udp265 scheme only supports H265 encode. Encode: {encode:?}, Endpoints: {endpoints:#?}"));
+            }
+        }
+        "rtsp" => {
+            // RTSP endpoints should contain host, port, and path
+            if endpoints.iter().any(|endpoint| {
+                endpoint.host().is_none() || endpoint.port().is_none() || endpoint.path().is_empty()
+            }) {
+                return Err(anyhow!(
+                    "Endpoint with rtsp scheme should contain host, port, and path. Endpoints: {endpoints:#?}"
+                ));
             }
         }
         _ => {

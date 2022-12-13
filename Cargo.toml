@@ -57,6 +57,7 @@ tokio = { version = "1.21", features = ["full"] }
 enum_dispatch = "0.3.8"
 uuid = { version = "0.8", features = ["v4", "serde"] }
 ts-rs = "6.2"
+once_cell = "1"
 
 ## Mavlink
 mavlink = { version = "0.10.1", features = ["default", "emit-extensions"] }
@@ -72,6 +73,8 @@ turn = "0.6"
 gst = { package = "gstreamer", version = "0.19", features = ["v1_16"] }
 gst-sdp = { package = "gstreamer-sdp", version = "0.19", features=["v1_16"] }
 gst-webrtc = { package = "gstreamer-webrtc", version = "0.19", features = ["v1_16"] }
+gst-rtsp = { version = "0.19", package = "gstreamer-rtsp", features = ["v1_16"] }
+gst-rtsp-server = { package = "gstreamer-rtsp-server", version = "0.19", features = ["v1_16"] }
 
 [dev-dependencies]
 rand = "0.8.5"
