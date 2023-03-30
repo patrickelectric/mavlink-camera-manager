@@ -64,14 +64,10 @@ anyhow = "1"
 tokio = { version = "1.32", features = ["full"] }
 enum_dispatch = "0.3.12"
 uuid = { version = "0.8", features = ["v4", "serde"] }
-<<<<<<< HEAD
 ts-rs = "7.0"
 cached = { version = "0.45", features = ["serde", "serde_json", "async_tokio_rt_multi_thread"] }
-=======
-ts-rs = "6.2"
-cached = { version = "0.42", features = ["serde", "serde_json", "async_tokio_rt_multi_thread"] }
-onvif-rs = { version = "0.0.4" }
->>>>>>> 67b34ab (cargo: Add onvif-rs dependency)
+onvif = { git = "https://github.com/lumeohq/onvif-rs", revision = "a49b43d4713ee5ff5ffb7bab9105d6793c6c1085" }
+async-trait = "0.1"
 
 ## Mavlink
 mavlink = { version = "0.10.1", features = ["default", "emit-extensions"] }
