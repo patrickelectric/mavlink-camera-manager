@@ -93,10 +93,9 @@ impl MavlinkCameraComponent {
             if vector.contains(&id) {
                 id += 1;
                 continue;
-            } else {
-                vector.push(id);
-                break;
             }
+            vector.push(id);
+            break;
         }
 
         let (resolution_h, resolution_v, framerate) = match &video_and_stream_information

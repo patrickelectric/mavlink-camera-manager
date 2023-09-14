@@ -417,7 +417,8 @@ fn get_device_formats(device_path: &str, typ: &VideoSourceLocalType) -> Vec<Form
 fn validate_control(control: &Control, value: i64) -> Result<(), String> {
     if control.state.is_inactive {
         return Err("Control is inactive".to_string());
-    } else if control.state.is_disabled {
+    }
+    if control.state.is_disabled {
         return Err("Control is disabled".to_string());
     }
 

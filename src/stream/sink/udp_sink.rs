@@ -317,9 +317,8 @@ impl UdpSink {
                 }
                 if let (Some(host), Some(port)) = (address.host(), address.port()) {
                     Some(format!("{host}:{port}"))
-                } else {
-                    None
                 }
+                None
             })
             .collect::<Vec<String>>()
             .join(",");

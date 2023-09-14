@@ -365,11 +365,10 @@ pub fn sdp(sdp_file_request: web::Query<SdpFileRequest>) -> HttpResponse {
         Ok(sdp) => {
             if let Ok(sdp) = sdp.as_text() {
                 HttpResponse::Ok().content_type("text/plain").body(sdp)
-            } else {
-                HttpResponse::InternalServerError()
-                    .content_type("text/plain")
-                    .body("Failed to convert SDP to text".to_string())
             }
+            HttpResponse::InternalServerError()
+                .content_type("text/plain")
+                .body("Failed to convert SDP to text".to_string())
         }
         Err(error) => HttpResponse::NotFound()
             .content_type("text/plain")

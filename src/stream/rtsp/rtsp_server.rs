@@ -125,9 +125,8 @@ impl RTSPServer {
                             .get::<String>()
                             .expect("Failed accessing encoding-name parameter"),
                     )
-                } else {
-                    None
                 }
+                None
             })
         }) else {
             return Err(anyhow!("Cannot find 'media' in caps"));

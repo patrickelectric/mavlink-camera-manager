@@ -43,9 +43,8 @@ impl AuthHandler for MyAuthHandler {
         if let Some(pw) = self.cred_map.get(username) {
             debug!("username={}, password={:?}", username, pw);
             Ok(pw.to_vec())
-        } else {
-            Err(Error::ErrFakeErr)
         }
+        Err(Error::ErrFakeErr)
     }
 }
 

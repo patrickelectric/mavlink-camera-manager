@@ -230,9 +230,8 @@ pub fn get_first_sdp_from_source(source: String) -> ClonableResult<gst_sdp::SDPM
                 .sinks
                 .values()
                 .find_map(|sink| sink.get_sdp().ok())
-        } else {
-            None
         }
+        None
     }) else {
         return Err(Arc::new(anyhow!(
             "Failed to find any valid sdp for souce {source:?}"
