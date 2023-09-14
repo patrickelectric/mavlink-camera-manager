@@ -424,15 +424,10 @@ fn validate_control(control: &Control, value: i64) -> Result<(), String> {
 
     match &control.configuration {
         ControlType::Slider(control) => {
-            if value > control.max {
+            if value > control.max || value < control.min {
                 return Err(format!(
-                    "Value {value:?} is greater than the Control maximum value: {:?}",
-                    control.max
-                ));
-            } else if value < control.min {
-                return Err(format!(
-                    "Value {value:?} is lower than the Control minimum value: {:?}",
-                    control.min
+                    "Value {value:?} is outside of the Control range: [{},{}]",
+                    control.min, control.max
                 ));
             }
         }
