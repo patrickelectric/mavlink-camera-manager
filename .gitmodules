@@ -1,0 +1,6 @@
+[submodule "onvif-rs"]
+	path = libs/onvif-rs
+	url = https://github.com/lumeohq/onvif-rs
+[submodule "libs/onvif-rs"]
+	path = libs/onvif-rs
+	url = https://github.com/lumeohq/onvif-rs
