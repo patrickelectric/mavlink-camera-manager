@@ -117,26 +117,26 @@ impl VideoSourceAvailable for VideoSourceRedirect {
     }
 }
 
-async fn discover() -> Result<Vec<VideoSourceType>> {
-    use futures::stream::iter;
-    use futures::stream::StreamExt;
+// async fn discover() -> Result<Vec<VideoSourceType>> {
+//     use futures::stream::iter;
+//     use futures::stream::StreamExt;
 
-    let videos = discovery::DiscoveryBuilder::default()
-        .duration(std::time::Duration::from_secs(5))
-        .listen_address("0.0.0.0".parse().unwrap())
-        .run()
-        .await?
-        .map(|device| {
-            iter(device.urls.into_iter().map(move |url| {
-                VideoSourceType::Redirect(VideoSourceRedirect {
-                    name: device.name.clone().unwrap_or("Unnamed".into()),
-                    source: VideoSourceRedirectType::Onvif(url.clone()),
-                })
-            }))
-        })
-        .flatten()
-        .collect()
-        .await;
+//     let videos = discovery::DiscoveryBuilder::default()
+//         .duration(std::time::Duration::from_secs(5))
+//         .listen_address("0.0.0.0".parse().unwrap())
+//         .run()
+//         .await?
+//         .map(|device| {
+//             iter(device.urls.into_iter().map(move |url| {
+//                 VideoSourceType::Redirect(VideoSourceRedirect {
+//                     name: device.name.clone().unwrap_or("Unnamed".into()),
+//                     source: VideoSourceRedirectType::Onvif(url.clone()),
+//                 })
+//             }))
+//         })
+//         .flatten()
+//         .collect()
+//         .await;
 
-    Ok(videos)
-}
+//     Ok(videos)
+// }
