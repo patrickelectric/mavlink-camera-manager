@@ -97,6 +97,13 @@ pub fn enable_thread_counter() -> bool {
         .is_present("enable-thread-counter");
 }
 
+pub fn enable_webrtc_task_test() -> bool {
+    return MANAGER
+        .as_ref()
+        .clap_matches
+        .is_present("enable-webrtc-task-test");
+}
+
 // Return the command line used to start this application
 pub fn command_line_string() -> String {
     std::env::args().collect::<Vec<String>>().join(" ")
@@ -229,6 +236,12 @@ fn get_clap_matches<'a>() -> clap::ArgMatches<'a> {
             clap::Arg::with_name("enable-thread-counter")
                 .long("enable-thread-counter")
                 .help("Enable a thread that prints the number of children processes.")
+                .takes_value(false),
+        )
+        .arg(
+            clap::Arg::with_name("enable-webrtc-task-test")
+                .long("enable-webrtc-task-test")
+                .help("Enable webrtc thread test with limit of child tasks.")
                 .takes_value(false),
         );
 
