@@ -18,6 +18,8 @@ mod stream;
 mod video;
 mod video_stream;
 
+use video::{video_source::VideoSourceAvailable, video_source_file::VideoSourceFile};
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> Result<(), std::io::Error> {
     // CLI should be started before logger to allow control over verbosity
@@ -28,6 +30,8 @@ async fn main() -> Result<(), std::io::Error> {
     settings::manager::init(None);
 
     mavlink::manager::Manager::init();
+
+    dbg!(VideoSourceFile::cameras_available());
 
     stream::manager::init();
     settings::manager::set_mavlink_endpoint(&cli::manager::mavlink_connection_string());

@@ -1,18 +1,23 @@
+use std::fmt;
+
 use super::video_source::VideoSource;
+use super::video_source_file::VideoSourceFile;
 use super::video_source_gst::VideoSourceGst;
 use super::video_source_local::VideoSourceLocal;
 use super::video_source_redirect::VideoSourceRedirect;
+use gst;
 use paperclip::actix::Apiv2Schema;
-use serde::{Deserialize, Serialize};
+use serde::{de::{self, Visitor}, Deserialize, Deserializer, Serialize};
 
-#[derive(Apiv2Schema, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Apiv2Schema, Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum VideoSourceType {
     Gst(VideoSourceGst),
     Local(VideoSourceLocal),
+    File(VideoSourceFile),
     Redirect(VideoSourceRedirect),
 }
 
-#[derive(Apiv2Schema, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+#[derive(Apiv2Schema, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum VideoEncodeType {
     Unknown(String),
@@ -39,6 +44,15 @@ pub struct Size {
 pub struct FrameInterval {
     pub numerator: u32,
     pub denominator: u32,
+}
+
+impl From<gst::Fraction> for FrameInterval {
+    fn from(fraction: gst::Fraction) -> Self {
+        FrameInterval {
+            numerator: fraction.numer() as u32,
+            denominator: fraction.denom() as u32,
+        }
+    }
 }
 
 #[derive(Apiv2Schema, Clone, Debug, Default, Serialize)]
@@ -94,6 +108,7 @@ pub struct ControlOption {
 impl VideoSourceType {
     pub fn inner(&self) -> &(dyn VideoSource + '_) {
         match self {
+            VideoSourceType::File(file) => file,
             VideoSourceType::Local(local) => local,
             VideoSourceType::Gst(gst) => gst,
             VideoSourceType::Redirect(redirect) => redirect,
@@ -112,6 +127,30 @@ impl VideoEncodeType {
             _ => VideoEncodeType::Unknown(fourcc),
         }
     }
+
+    pub fn to_codec(self) -> String {
+        match self {
+            VideoEncodeType::H264 => "video/x-h264",
+            VideoEncodeType::H265 => "video/x-h265",
+            // TODO: We need to handle the mpeg version one day, but not today
+            VideoEncodeType::Mjpg => "video/mpeg",
+            VideoEncodeType::Yuyv => "video/x-raw,format=I420",
+            VideoEncodeType::Unknown(codec) => {
+                return codec;
+            }
+        }.to_string()
+    }
+
+    pub fn from_codec(codec: &str) -> VideoEncodeType {
+        match codec {
+            "video/x-h264" => VideoEncodeType::H264,
+            "video/x-h265" => VideoEncodeType::H265,
+            // TODO: We need to handle the mpeg version one day, but not today
+            "video/mpeg" => VideoEncodeType::Mjpg,
+            "video/x-raw,format=I420" => VideoEncodeType::Yuyv,
+            codec => VideoEncodeType::Unknown(codec.to_string()),
+        }
+    }
 }
 
 impl Default for ControlType {
@@ -120,6 +159,40 @@ impl Default for ControlType {
             default: 0,
             value: 0,
         })
+    }
+}
+
+struct VideoEncodeTypeVisitor;
+
+impl<'de> Visitor<'de> for VideoEncodeTypeVisitor {
+    type Value = VideoEncodeType;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a string representing a video encoding type")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        let variant = match value.to_uppercase().as_str() {
+            "H265" => VideoEncodeType::H265,
+            "H264" => VideoEncodeType::H264,
+            "MJPG" => VideoEncodeType::Mjpg,
+            "YUYV" => VideoEncodeType::Yuyv,
+            _ => VideoEncodeType::Unknown(value.to_owned()),
+        };
+        Ok(variant)
+    }
+}
+
+// Implementing the Deserialize trait for VideoEncodeType
+impl<'de> Deserialize<'de> for VideoEncodeType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(VideoEncodeTypeVisitor)
     }
 }
 

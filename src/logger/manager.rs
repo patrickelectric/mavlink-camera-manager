@@ -75,9 +75,9 @@ pub fn init() {
     gst::log::remove_default_log_function();
     // This fundamentally changes the CPU usage of our streams, so we are only enabling
     // this integration if absolutely necessary.
+    gst::init().unwrap();
     if cli::manager::is_tracy() {
         tracing_gstreamer::integrate_events(); // This must be called before any gst::init()
-        gst::init().unwrap();
         tracing_gstreamer::integrate_spans(); // This must be called after gst::init(), this is necessary to have GStreamer on tracy
     }
 

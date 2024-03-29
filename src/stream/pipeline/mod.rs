@@ -1,4 +1,5 @@
 pub mod fake_pipeline;
+pub mod file_pipeline;
 pub mod redirect_pipeline;
 pub mod runner;
 pub mod v4l_pipeline;
@@ -24,6 +25,7 @@ use crate::{
 };
 
 use fake_pipeline::FakePipeline;
+use file_pipeline::FilePipeline;
 use redirect_pipeline::RedirectPipeline;
 use runner::PipelineRunner;
 use v4l_pipeline::V4lPipeline;
@@ -38,12 +40,14 @@ pub trait PipelineGstreamerInterface {
 pub enum Pipeline {
     V4l(V4lPipeline),
     Fake(FakePipeline),
+    File(FilePipeline),
     Redirect(RedirectPipeline),
 }
 
 impl Pipeline {
     pub fn inner_state_mut(&mut self) -> &mut PipelineState {
         match self {
+            Pipeline::File(pipeline) => &mut pipeline.state,
             Pipeline::V4l(pipeline) => &mut pipeline.state,
             Pipeline::Fake(pipeline) => &mut pipeline.state,
             Pipeline::Redirect(pipeline) => &mut pipeline.state,
@@ -52,6 +56,7 @@ impl Pipeline {
 
     pub fn inner_state_as_ref(&self) -> &PipelineState {
         match self {
+            Pipeline::File(pipeline) => &pipeline.state,
             Pipeline::V4l(pipeline) => &pipeline.state,
             Pipeline::Fake(pipeline) => &pipeline.state,
             Pipeline::Redirect(pipeline) => &pipeline.state,
@@ -65,6 +70,9 @@ impl Pipeline {
     ) -> Result<Self> {
         let pipeline_state = PipelineState::try_new(video_and_stream_information, pipeline_id)?;
         Ok(match &video_and_stream_information.video_source {
+            VideoSourceType::File(_) => Pipeline::File(FilePipeline {
+                state: pipeline_state,
+            }),
             VideoSourceType::Gst(_) => Pipeline::Fake(FakePipeline {
                 state: pipeline_state,
             }),
@@ -110,6 +118,9 @@ impl PipelineState {
         pipeline_id: &uuid::Uuid,
     ) -> Result<Self> {
         let pipeline = match &video_and_stream_information.video_source {
+            VideoSourceType::File(_) => {
+                FilePipeline::try_new(pipeline_id, video_and_stream_information)
+            }
             VideoSourceType::Gst(_) => {
                 FakePipeline::try_new(pipeline_id, video_and_stream_information)
             }

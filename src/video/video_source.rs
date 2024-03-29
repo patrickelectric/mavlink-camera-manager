@@ -1,4 +1,5 @@
 use super::types::*;
+use super::video_source_file::VideoSourceFile;
 use super::video_source_gst::VideoSourceGst;
 use super::video_source_local::VideoSourceLocal;
 use super::video_source_redirect::VideoSourceRedirect;
@@ -23,6 +24,7 @@ pub trait VideoSourceAvailable {
 
 pub fn cameras_available() -> Vec<VideoSourceType> {
     [
+        &VideoSourceFile::cameras_available()[..],
         &VideoSourceLocal::cameras_available()[..],
         &VideoSourceGst::cameras_available()[..],
         &VideoSourceRedirect::cameras_available()[..],

@@ -1,6 +1,7 @@
 use crate::helper;
 use crate::settings;
 use crate::stream::{manager as stream_manager, types::StreamInformation};
+use crate::video::video_source_file::VideoSourceFile;
 use crate::video::{
     types::{Control, Format, VideoSourceType},
     video_source,
@@ -188,6 +189,12 @@ pub async fn v4l() -> Json<Vec<ApiVideoSource>> {
     let cameras: Vec<ApiVideoSource> = cameras
         .iter()
         .map(|cam| match cam {
+            VideoSourceType::File(file) => ApiVideoSource {
+                name: file.name().clone(),
+                source: file.source_string().to_string(),
+                formats: file.formats(),
+                controls: file.controls(),
+            },
             VideoSourceType::Local(cam) => ApiVideoSource {
                 name: cam.name().clone(),
                 source: cam.source_string().to_string(),
