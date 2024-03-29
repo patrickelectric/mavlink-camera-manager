@@ -122,6 +122,31 @@ impl VideoEncodeType {
             _ => VideoEncodeType::Unknown(fourcc),
         }
     }
+
+    pub fn to_codec(self) -> String {
+        match self {
+            VideoEncodeType::H264 => "video/x-h264",
+            VideoEncodeType::H265 => "video/x-h265",
+            // TODO: We need to handle the mpeg version one day, but not today
+            VideoEncodeType::Mjpg => "video/mpeg",
+            VideoEncodeType::Yuyv => "video/x-raw,format=I420",
+            VideoEncodeType::Unknown(codec) => {
+                return codec;
+            }
+        }
+        .to_string()
+    }
+
+    pub fn from_codec(codec: &str) -> VideoEncodeType {
+        match codec {
+            "video/x-h264" => VideoEncodeType::H264,
+            "video/x-h265" => VideoEncodeType::H265,
+            // TODO: We need to handle the mpeg version one day, but not today
+            "video/mpeg" => VideoEncodeType::Mjpg,
+            "video/x-raw,format=I420" => VideoEncodeType::Yuyv,
+            codec => VideoEncodeType::Unknown(codec.to_string()),
+        }
+    }
 }
 
 impl Default for ControlType {
