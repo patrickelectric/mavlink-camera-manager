@@ -71,6 +71,7 @@ impl FilePipeline {
         // We are choosing "UYVY" because it is compatible with the
         // application-rtp template capabilities.
         // For more information: https://gstreamer.freedesktop.org/documentation/additional/design/mediatype-video-raw.html?gi-language=c#formats
+        /*
         let description = format!(
             concat!(
                 // Because application-rtp templates doesn't accept "YUY2", we
@@ -79,23 +80,37 @@ impl FilePipeline {
                 " multifilesrc location=\"{source}\" loop=true",
                 " ! decodebin3",
                 // " ! video/x-raw,format=I420",
-                " ! capsfilter name={filter_name} caps={encode},width={width},height={height},framerate={interval_denominator}/{interval_numerator}",
+                //" ! capsfilter name={filter_name} caps={encode},width={width},height={height},framerate={interval_denominator}/{interval_numerator}",
                 " ! tee name={video_tee_name} allow-not-linked=true",
                 " ! {rtp_payloader} pt=96",
                 " ! tee name={rtp_tee_name} allow-not-linked=true",
             ),
             source = video_source.source.clone().into_os_string().into_string().unwrap(),
-            encode = video_source.configuration.encode.clone().to_codec(),
-            width = configuration.width,
-            height = configuration.height,
-            interval_denominator = configuration.frame_interval.denominator,
-            interval_numerator = configuration.frame_interval.numerator,
-            filter_name = filter_name,
+            // encode = video_source.configuration.encode.clone().to_codec(),
+            // width = configuration.width,
+            // height = configuration.height,
+            // interval_denominator = configuration.frame_interval.denominator,
+            // interval_numerator = configuration.frame_interval.numerator,
+            // filter_name = filter_name,
             video_tee_name = video_tee_name,
             rtp_payloader = rtp_payloader,
             rtp_tee_name = rtp_tee_name,
+        );*/
+
+        let description = format!(
+            concat!(
+                " filesrc location={source}",
+                " ! qtdemux ! video/x-h264 ! queue",
+                " ! tee name={video_tee_name} allow-not-linked=true",
+                " ! rtph264pay config-interval=1 pt=96",
+                " ! tee name={rtp_tee_name} allow-not-linked=true",
+            ),
+            source = video_source.source.clone().into_os_string().into_string().unwrap(),
+            video_tee_name = video_tee_name,
+            rtp_tee_name = rtp_tee_name,
         );
 
+        debug!("Running pipeline: {description:#?}");
         let pipeline = gst::parse::launch(&description)?;
 
         let pipeline = pipeline

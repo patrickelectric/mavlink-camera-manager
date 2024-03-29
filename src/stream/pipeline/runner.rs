@@ -229,6 +229,8 @@ async fn bus_watcher_task(
 
         match message.view() {
             MessageView::Eos(eos) => {
+                pipeline.seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(0));
+                break;
                 pipeline.debug_to_dot_file_with_ts(
                     gst::DebugGraphDetails::all(),
                     format!("pipeline-{pipeline_id}-eos"),
