@@ -197,7 +197,10 @@ impl VideoSourceAvailable for VideoSourceFile {
                         encode: VideoEncodeType::from_codec(codec),
                         height: video_info.height() as u32,
                         width: video_info.width() as u32,
-                        frame_interval: FrameInterval::from(video_info.framerate()),
+                        frame_interval: FrameInterval {
+                            numerator: 1,
+                            denominator: 1,
+                        },
                     },
                 }));
                 break;

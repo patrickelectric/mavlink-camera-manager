@@ -329,11 +329,13 @@ impl StreamManagementInterface<Stream> for SignallingServer {
         Ok(streams
             .iter()
             .filter_map(|stream| {
+                dbg!(stream);
                 let (height, width, encode, interval) =
                     match &stream.video_and_stream.stream_information.configuration {
                         crate::stream::types::CaptureConfiguration::Video(configuration) => {
                             // Filter out non-H264 local streams
-                            if configuration.encode != crate::video::types::VideoEncodeType::H264 {
+                            dbg!(configuration.encode.clone());
+                            if configuration.encode != crate::video::types::VideoEncodeType::H264 && !configuration.encode.to_string().contains("image") {
                                 trace!("Stream {:?} will not be listed in available streams because it's encoding isn't H264 (it's {:?} instead)", stream.video_and_stream.name, configuration.encode);
                                 return None;
                             }
@@ -341,11 +343,7 @@ impl StreamManagementInterface<Stream> for SignallingServer {
                                 Some(configuration.height),
                                 Some(configuration.width),
                                 Some(format!("{:#?}", configuration.encode)),
-                                Some(
-                                    (configuration.frame_interval.numerator as f32
-                                        / configuration.frame_interval.denominator as f32)
-                                        .to_string(),
-                                ),
+                                Some("30".to_string()),
                             )
                         }
                         crate::stream::types::CaptureConfiguration::Redirect(_) => {
@@ -368,6 +366,8 @@ impl StreamManagementInterface<Stream> for SignallingServer {
                         .source_string()
                         .to_string(),
                 );
+
+                dbg!(source.clone());
 
                 let name = stream.video_and_stream.name.clone();
                 let id = stream.id;

@@ -333,6 +333,14 @@ impl ImageSink {
 
         // Depending of the sources' format we need different elements to transform it into a raw format
         let mut _transcoding_elements: Vec<gst::Element> = Default::default();
+
+        let encoding = if encoding.to_string().contains("image") {
+            info!("The source appears to be an image, by default we transform image to h264 streams.");
+            VideoEncodeType::H264
+        } else {
+            encoding
+        };
+
         match encoding {
             VideoEncodeType::H264 => {
                 // For h264, we need to filter-out unwanted non-key frames here, before decoding it.
@@ -353,7 +361,9 @@ impl ImageSink {
                 _transcoding_elements.push(decoder);
             }
             VideoEncodeType::Yuyv => {}
-            _ => return Err(anyhow!("Unsupported video encoding for ImageSink: {encoding:?}. The supported are: H264, MJPG and YUYV")),
+            other => {
+                return Err(anyhow!("Unsupported video encoding for ImageSink: {other:?}. The supported are: H264, MJPG and YUYV"));
+            },
         };
 
         let videoconvert = gst::ElementFactory::make("videoconvert").build()?;

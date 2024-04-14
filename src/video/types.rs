@@ -1,13 +1,14 @@
-use std::fmt;
+use std::{str::FromStr, fmt::Display};
 
 use super::video_source::VideoSource;
 use super::video_source_file::VideoSourceFile;
 use super::video_source_gst::VideoSourceGst;
 use super::video_source_local::VideoSourceLocal;
 use super::video_source_redirect::VideoSourceRedirect;
+use anyhow::{anyhow, Result};
 use gst;
 use paperclip::actix::Apiv2Schema;
-use serde::{de::{self, Visitor}, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Apiv2Schema, Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum VideoSourceType {
@@ -17,7 +18,7 @@ pub enum VideoSourceType {
     Redirect(VideoSourceRedirect),
 }
 
-#[derive(Apiv2Schema, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Apiv2Schema, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum VideoEncodeType {
     Unknown(String),
@@ -116,29 +117,53 @@ impl VideoSourceType {
     }
 }
 
-impl VideoEncodeType {
-    //TODO: use trait fromstr, check others places
-    pub fn from_str(fourcc: &str) -> VideoEncodeType {
-        let fourcc = fourcc.to_uppercase();
+impl FromStr for VideoEncodeType {
+    type Err = ();
+
+    fn from_str(fourcc: &str) -> Result<Self, Self::Err> {
+        let fourcc = fourcc.to_lowercase();
         match fourcc.as_str() {
-            "H264" => VideoEncodeType::H264,
-            "MJPG" => VideoEncodeType::Mjpg,
-            "YUYV" => VideoEncodeType::Yuyv,
-            _ => VideoEncodeType::Unknown(fourcc),
+            "h264" => Ok(VideoEncodeType::H264),
+            "h265" => Ok(VideoEncodeType::H265),
+            "mjpg" => Ok(VideoEncodeType::Mjpg),
+            "yuyv" => Ok(VideoEncodeType::Yuyv),
+            _ => Ok(VideoEncodeType::Unknown(fourcc)),
         }
     }
+}
 
-    pub fn to_codec(self) -> String {
-        match self {
-            VideoEncodeType::H264 => "video/x-h264",
-            VideoEncodeType::H265 => "video/x-h265",
-            // TODO: We need to handle the mpeg version one day, but not today
-            VideoEncodeType::Mjpg => "video/mpeg",
-            VideoEncodeType::Yuyv => "video/x-raw,format=I420",
-            VideoEncodeType::Unknown(codec) => {
-                return codec;
-            }
-        }.to_string()
+impl Display for VideoEncodeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Ok(codec) = self.to_codec() {
+            return write!(f, "{codec}");
+        }
+
+        let string = match self {
+            VideoEncodeType::H264 => "h264".to_string(),
+            VideoEncodeType::H265 => "h265".to_string(),
+            VideoEncodeType::Mjpg => "mjpg".to_string(),
+            VideoEncodeType::Yuyv => "yuyv".to_string(),
+            VideoEncodeType::Unknown(s) => s.clone().to_lowercase(),
+        };
+
+        write!(f, "{string}")
+    }
+}
+
+impl VideoEncodeType {
+    pub fn to_codec(&self) -> Result<String> {
+        if let VideoEncodeType::Unknown(codec) = self {
+            Err(anyhow!("Unsupported codec type: {codec}"))
+        } else {
+            Ok(match self {
+                VideoEncodeType::H264 => "video/x-h264",
+                VideoEncodeType::H265 => "video/x-h265",
+                // TODO: We need to handle the mpeg version one day, but not today
+                VideoEncodeType::Mjpg => "video/mpeg",
+                VideoEncodeType::Yuyv => "video/x-raw,format=I420",
+                _ => unreachable!(),
+            }.to_string())
+        }
     }
 
     pub fn from_codec(codec: &str) -> VideoEncodeType {
@@ -159,40 +184,6 @@ impl Default for ControlType {
             default: 0,
             value: 0,
         })
-    }
-}
-
-struct VideoEncodeTypeVisitor;
-
-impl<'de> Visitor<'de> for VideoEncodeTypeVisitor {
-    type Value = VideoEncodeType;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a string representing a video encoding type")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        let variant = match value.to_uppercase().as_str() {
-            "H265" => VideoEncodeType::H265,
-            "H264" => VideoEncodeType::H264,
-            "MJPG" => VideoEncodeType::Mjpg,
-            "YUYV" => VideoEncodeType::Yuyv,
-            _ => VideoEncodeType::Unknown(value.to_owned()),
-        };
-        Ok(variant)
-    }
-}
-
-// Implementing the Deserialize trait for VideoEncodeType
-impl<'de> Deserialize<'de> for VideoEncodeType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(VideoEncodeTypeVisitor)
     }
 }
 
