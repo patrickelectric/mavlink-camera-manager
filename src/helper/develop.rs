@@ -59,7 +59,7 @@ async fn task(mut counter: i32) -> Result<()> {
 
             info!("Button id {button_id:?}: clicked");
 
-            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
         }
 
         counter += 1;
