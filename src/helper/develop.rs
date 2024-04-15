@@ -46,7 +46,7 @@ async fn task(mut counter: i32) -> Result<()> {
                 .and_enabled()
                 .and_clickable()
                 .and_displayed()
-                .wait(Duration::from_secs(1), Duration::from_millis(100))
+                .wait(Duration::from_secs(60), Duration::from_millis(100))
                 .first()
                 .await
                 .inspect_err(|error| {
