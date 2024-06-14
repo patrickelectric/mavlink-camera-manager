@@ -10,6 +10,7 @@ pub enum VideoSourceGstType {
     // TODO: local should have a pipeline also
     Local(VideoSourceLocal),
     Fake(String),
+    QR(String),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -27,6 +28,7 @@ impl VideoSource for VideoSourceGst {
         match &self.source {
             VideoSourceGstType::Local(local) => local.source_string(),
             VideoSourceGstType::Fake(string) => string,
+            VideoSourceGstType::QR(string) => string,
         }
     }
 
@@ -75,6 +77,52 @@ impl VideoSource for VideoSourceGst {
                     },
                 ]
             }
+            VideoSourceGstType::QR(_) => {
+                let intervals: Vec<FrameInterval> = [60, 30, 24, 16, 10, 5]
+                    .iter()
+                    .map(|&frame_interval| FrameInterval {
+                        denominator: frame_interval,
+                        numerator: 1,
+                    })
+                    .collect();
+
+                let sizes: Vec<Size> = [
+                    (240, 240),
+                    (320, 320),
+                    (480, 480),
+                    (640, 640),
+                    (480, 480),
+                    (720, 720),
+                    (720, 720),
+                    (960, 960),
+                    (720, 720),
+                    (1280, 128),
+                    (1080, 1080),
+                    (1280, 1280),
+                    (1080, 1080),
+                    (1440, 1440),
+                    (1080, 1080),
+                    (1920, 1920),
+                ]
+                .iter()
+                .map(|&(width, height)| Size {
+                    width,
+                    height,
+                    intervals: intervals.clone(),
+                })
+                .collect();
+
+                vec![
+                    Format {
+                        encode: VideoEncodeType::H264,
+                        sizes: sizes.clone(),
+                    },
+                    Format {
+                        encode: VideoEncodeType::Rgb,
+                        sizes,
+                    },
+                ]
+            },
         }
     }
 
@@ -120,6 +168,7 @@ impl VideoSource for VideoSourceGst {
                 | "snow" | "solid" | "spokes" | "white" | "zone" => true,
                 _ => false,
             },
+            VideoSourceGstType::QR(_) => true,
         }
     }
 
@@ -130,9 +179,15 @@ impl VideoSource for VideoSourceGst {
 
 impl VideoSourceAvailable for VideoSourceGst {
     fn cameras_available() -> Vec<VideoSourceType> {
-        vec![VideoSourceType::Gst(VideoSourceGst {
-            name: "Fake source".into(),
-            source: VideoSourceGstType::Fake("ball".into()),
-        })]
+        vec![
+            VideoSourceType::Gst(VideoSourceGst {
+                name: "Fake source".into(),
+                source: VideoSourceGstType::Fake("ball".into()),
+            }),
+            VideoSourceType::Gst(VideoSourceGst {
+                name: "QR".into(),
+                source: VideoSourceGstType::QR("Potato".into()),
+            }),
+        ]
     }
 }
